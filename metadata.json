@@ -1,0 +1,8 @@
+{
+  "name": "PETCARE PLUS",
+  "description": "Website thương hiệu dịch vụ chăm sóc chó mèo PETCARE PLUS với thông tin minh bạch, kiến thức chăm sóc thú cưng và tư vấn dịch vụ.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

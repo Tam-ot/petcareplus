@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy: #233B53;
+  --color-coral: #E99A78;
+  --color-cream: #F5F1E8;
+  --color-ink: #332C28;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    color: #332C28;
+    background-color: #F5F1E8;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: #233B53;
+    text-wrap: balance;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    outline-color: #233B53;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
