@@ -2,7 +2,6 @@ import 'dotenv/config';
 import crypto from 'crypto';
 import path from 'path';
 import express, { Request, Response, NextFunction } from 'express';
-import { createServer as createViteServer } from 'vite';
 import { AuthUser, BlogPostItem, UserRole } from './src/types';
 import {
   ALLOWED_MIME_EXTENSIONS,
@@ -711,6 +710,7 @@ async function startServer(): Promise<void> {
 
   // --- FRONTEND (Vite Middleware in Dev / Static in Prod) ---
   if (!IS_PROD) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
