@@ -30,6 +30,7 @@ export const EditorialImage: React.FC<EditorialImageProps> = ({
           alt={alt}
           referrerPolicy="no-referrer"
           loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
           onError={() => setHasError(true)}
           className={`h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] ${imgClassName}`}
         />

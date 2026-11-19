@@ -130,7 +130,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="md:col-span-5">
                 <div className="mx-auto w-full max-w-[640px]">
                   <EditorialImage
-                    src="/assets/aistudio/Golden_Retriever_and_Cozy_Cat_Companions_b2cc2ea9.png"
+                    src="/assets/aistudio/Golden_Retriever_and_Cozy_Cat_Companions_b2cc2ea9.jpg"
                     alt="Chú chó Golden Retriever, chó Corgi, mèo xám và mèo con lông cam nằm cạnh nhau trên thảm kem ấm áp"
                     aspectClass="aspect-[4/3]"
                     imgClassName="object-center rounded-[28px]"

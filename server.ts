@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import path from 'path';
+import zlib from 'zlib';
 import express, { Request, Response, NextFunction } from 'express';
 import { AuthUser, BlogPostItem, UserRole } from './src/types';
 import {
@@ -718,8 +719,64 @@ async function startServer(): Promise<void> {
     app.use(vite.middlewares);
   } else {
     const distDir = path.join(ROOT_DIR, 'dist');
-    app.use(express.static(distDir));
+
+    // Gzip compression for text/JS/CSS/JSON responses in production
+    app.use((req, res, next) => {
+      const acceptEncoding = String(req.headers['accept-encoding'] || '');
+      if (!acceptEncoding.includes('gzip') || req.path.startsWith('/api/upload')) {
+        next();
+        return;
+      }
+
+      const originalSend = res.send.bind(res);
+      res.send = ((body?: unknown) => {
+        const contentType = String(res.getHeader('Content-Type') || '');
+        const isCompressible =
+          /text\/|application\/javascript|application\/json|image\/svg\+xml/i.test(
+            contentType
+          );
+        if (
+          isCompressible &&
+          !res.getHeader('Content-Encoding') &&
+          (typeof body === 'string' || Buffer.isBuffer(body))
+        ) {
+          const buf = Buffer.isBuffer(body) ? body : Buffer.from(body);
+          if (buf.length > 1024) {
+            const compressed = zlib.gzipSync(buf);
+            res.setHeader('Content-Encoding', 'gzip');
+            res.setHeader('Vary', 'Accept-Encoding');
+            res.setHeader('Content-Length', String(compressed.length));
+            return originalSend(compressed);
+          }
+        }
+        return originalSend(body);
+      }) as typeof res.send;
+      next();
+    });
+
+    // Long-term immutable cache for hashed Vite JS/CSS bundles
+    app.use(
+      '/assets',
+      express.static(path.join(distDir, 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      })
+    );
+
+    // 7-day browser cache for static images and other public assets
+    app.use(
+      express.static(distDir, {
+        maxAge: '7d',
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
+      })
+    );
+
     app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(path.join(distDir, 'index.html'));
     });
   }
