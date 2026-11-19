@@ -313,16 +313,23 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
           Boolean(s.image)
       );
 
+    let scheduledAtIso: string | undefined;
+    if (status === 'scheduled') {
+      const parsedSchedule = new Date(scheduledLocal);
+      if (Number.isNaN(parsedSchedule.getTime())) {
+        setError('Ngày và giờ lên lịch chưa hợp lệ. Vui lòng chọn lại.');
+        return;
+      }
+      scheduledAtIso = parsedSchedule.toISOString();
+    }
+
     const payload: SavePostPayload = {
       title: title.trim(),
       category,
       contentType,
       videoUrl: contentType === 'video' ? videoUrl.trim() : undefined,
       status,
-      scheduledAt:
-        status === 'scheduled'
-          ? new Date(scheduledLocal).toISOString()
-          : undefined,
+      scheduledAt: scheduledAtIso,
       readTime:
         readTime.trim() ||
         (contentType === 'video' ? 'Video hướng dẫn' : '4 phút đọc'),
@@ -844,11 +851,11 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
                   onChange={(e) => setScheduledLocal(e.target.value)}
                   className="mt-2 w-full max-w-xs rounded-xl border border-[#233B53]/20 bg-[#F5F1E8]/40 px-4 py-2.5 text-sm font-medium text-[#233B53] outline-none focus:border-[#233B53] focus:bg-white"
                 />
-                {scheduledLocal && (
+                {scheduledLocal && formatDateTimeVi(scheduledLocal) && (
                   <p className="mt-2 text-xs text-[#332C28]/75">
                     Bài viết sẽ ẩn với khách truy cập và tự động xuất bản công khai vào:{' '}
                     <strong className="text-[#233B53]">
-                      {formatDateTimeVi(new Date(scheduledLocal).toISOString())}
+                      {formatDateTimeVi(scheduledLocal)}
                     </strong>
                   </p>
                 )}
