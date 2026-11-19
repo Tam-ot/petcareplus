@@ -2,8 +2,8 @@ node_modules/
 build/
 dist/
 coverage/
-data/
-public/uploads/
+/data/
+/public/uploads/
 .aistudio/
 .DS_Store
 *.log
