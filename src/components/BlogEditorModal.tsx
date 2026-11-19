@@ -293,7 +293,7 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
         const sectionCaption = s.imageCaption.trim();
 
         return {
-          heading: s.heading.trim() || title.trim(),
+          heading: s.heading.trim(),
           paragraphs:
             paragraphs.length > 0 || bullets.length > 0 || sectionImage
               ? paragraphs
@@ -678,7 +678,7 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
                   onChange={(e) =>
                     updateSection(idx, 'heading', e.target.value)
                   }
-                  placeholder="Tiêu đề mục (ví dụ: 1. Chuẩn bị dụng cụ phù hợp)"
+                  placeholder="Tiêu đề mục (tùy chọn — bỏ trống nếu không cần tiêu đề)"
                   className="w-full rounded-xl border border-[#233B53]/15 bg-white px-3.5 py-2.5 text-sm font-medium text-[#332C28] outline-none focus:border-[#233B53]"
                 />
 

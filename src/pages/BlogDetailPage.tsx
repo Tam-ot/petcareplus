@@ -159,9 +159,11 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({
           <div className="mx-auto mt-12 max-w-4xl space-y-9">
             {article.sections.map((section, sectionIdx) => (
               <section key={`${section.heading}-${sectionIdx}`} className="space-y-4">
-                <h2 className="font-[var(--font-display)] text-2xl font-bold leading-snug text-[#233B53] sm:text-[1.75rem]">
-                  {section.heading}
-                </h2>
+                {section.heading && section.heading.trim() && (
+                  <h2 className="font-[var(--font-display)] text-2xl font-bold leading-snug text-[#233B53] sm:text-[1.75rem]">
+                    {section.heading}
+                  </h2>
+                )}
                 {section.paragraphs.map((paragraph, idx) => (
                   <p
                     key={idx}
@@ -188,7 +190,7 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({
                     <div className="overflow-hidden rounded-[20px] border border-[#233B53]/10 bg-[#F5F1E8] p-2.5">
                       <img
                         src={section.image}
-                        alt={section.imageCaption || section.heading}
+                        alt={section.imageCaption || section.heading || article.title}
                         loading="lazy"
                         decoding="async"
                         className="max-h-[540px] w-full rounded-[14px] object-cover"
