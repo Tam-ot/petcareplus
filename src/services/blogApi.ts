@@ -75,7 +75,7 @@ export async function logoutAccount(): Promise<void> {
 }
 
 export async function fetchBlogPosts(): Promise<BlogPostItem[]> {
-  const res = await fetch('/api/posts', {
+  const res = await fetch(`/api/posts?_t=${Date.now()}`, {
     credentials: 'include',
     cache: 'no-store',
   });

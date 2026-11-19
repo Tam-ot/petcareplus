@@ -40,6 +40,8 @@ interface EditableSection {
   heading: string;
   bodyText: string;
   bulletsText: string;
+  image: string;
+  imageCaption: string;
 }
 
 const PRESET_IMAGES = [
@@ -96,11 +98,14 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
   const [status, setStatus] = useState<BlogPostStatus>('published');
   const [scheduledLocal, setScheduledLocal] = useState(toDatetimeLocalValue());
   const [sections, setSections] = useState<EditableSection[]>([
-    { heading: '', bodyText: '', bulletsText: '' },
+    { heading: '', bodyText: '', bulletsText: '', image: '', imageCaption: '' },
   ]);
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingSectionIdx, setUploadingSectionIdx] = useState<number | null>(
+    null
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,8 +134,18 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
               heading: s.heading,
               bodyText: s.paragraphs.join('\n\n'),
               bulletsText: (s.bullets ?? []).join('\n'),
+              image: s.image ?? '',
+              imageCaption: s.imageCaption ?? '',
             }))
-          : [{ heading: '', bodyText: '', bulletsText: '' }]
+          : [
+              {
+                heading: '',
+                bodyText: '',
+                bulletsText: '',
+                image: '',
+                imageCaption: '',
+              },
+            ]
       );
     } else {
       setContentType('article');
@@ -145,7 +160,9 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
       setFeatured(false);
       setStatus('published');
       setScheduledLocal(toDatetimeLocalValue());
-      setSections([{ heading: '', bodyText: '', bulletsText: '' }]);
+      setSections([
+        { heading: '', bodyText: '', bulletsText: '', image: '', imageCaption: '' },
+      ]);
     }
   }, [open, editingPost]);
 
@@ -210,12 +227,35 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
   const addSection = () => {
     setSections((prev) => [
       ...prev,
-      { heading: '', bodyText: '', bulletsText: '' },
+      { heading: '', bodyText: '', bulletsText: '', image: '', imageCaption: '' },
     ]);
   };
 
   const removeSection = (index: number) => {
     setSections((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleUploadSectionImage = async (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploadingSectionIdx(index);
+    try {
+      const url = await uploadMediaFile(file);
+      updateSection(index, 'image', url);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải ảnh minh họa cho mục nội dung.'
+      );
+    } finally {
+      setUploadingSectionIdx(null);
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,14 +289,29 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
           .split(/\n+/)
           .map((b) => b.replace(/^[-•*]\s*/, '').trim())
           .filter(Boolean);
+        const sectionImage = s.image.trim();
+        const sectionCaption = s.imageCaption.trim();
 
         return {
           heading: s.heading.trim() || title.trim(),
-          paragraphs: paragraphs.length > 0 ? paragraphs : [excerpt.trim()],
+          paragraphs:
+            paragraphs.length > 0 || bullets.length > 0 || sectionImage
+              ? paragraphs
+              : [excerpt.trim()],
           ...(bullets.length > 0 ? { bullets } : {}),
+          ...(sectionImage ? { image: sectionImage } : {}),
+          ...(sectionImage && sectionCaption
+            ? { imageCaption: sectionCaption }
+            : {}),
         };
       })
-      .filter((s) => s.heading || s.paragraphs.length > 0);
+      .filter(
+        (s) =>
+          s.heading ||
+          s.paragraphs.length > 0 ||
+          (s.bullets && s.bullets.length > 0) ||
+          Boolean(s.image)
+      );
 
     const payload: SavePostPayload = {
       title: title.trim(),
@@ -646,6 +701,82 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
                   placeholder="Danh sách gạch đầu dòng (tùy chọn — mỗi dòng là 1 ý)..."
                   className="w-full rounded-xl border border-[#233B53]/15 bg-white px-3.5 py-2.5 text-sm text-[#332C28] outline-none focus:border-[#233B53]"
                 />
+
+                {/* Optional illustration image after this section */}
+                <div className="rounded-xl border border-[#233B53]/10 bg-white/80 p-3 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#233B53]">
+                      <ImageIcon
+                        className="h-3.5 w-3.5 text-[#E99A78]"
+                        aria-hidden="true"
+                      />
+                      <span>Ảnh minh họa sau mục này (tùy chọn)</span>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[#233B53]/20 bg-[#F5F1E8]/70 px-3 py-1.5 text-xs font-semibold text-[#233B53] transition-colors hover:bg-[#233B53] hover:text-white">
+                        <Upload className="h-3 w-3" aria-hidden="true" />
+                        <span>
+                          {uploadingSectionIdx === idx
+                            ? 'Đang nén & tải ảnh...'
+                            : 'Tải ảnh từ máy'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={(e) => handleUploadSectionImage(idx, e)}
+                          disabled={uploadingSectionIdx !== null}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {section.image && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateSection(idx, 'image', '');
+                            updateSection(idx, 'imageCaption', '');
+                          }}
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3" aria-hidden="true" />
+                          <span>Xóa ảnh</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <input
+                      type="text"
+                      value={section.image}
+                      onChange={(e) =>
+                        updateSection(idx, 'image', e.target.value)
+                      }
+                      placeholder="Hoặc dán đường dẫn ảnh..."
+                      className="w-full rounded-lg border border-[#233B53]/15 bg-white px-3 py-2 text-xs text-[#332C28] outline-none focus:border-[#233B53]"
+                    />
+                    <input
+                      type="text"
+                      value={section.imageCaption}
+                      onChange={(e) =>
+                        updateSection(idx, 'imageCaption', e.target.value)
+                      }
+                      placeholder="Chú thích ảnh (tùy chọn)..."
+                      className="w-full rounded-lg border border-[#233B53]/15 bg-white px-3 py-2 text-xs text-[#332C28] outline-none focus:border-[#233B53]"
+                    />
+                  </div>
+
+                  {section.image && (
+                    <div className="overflow-hidden rounded-lg border border-[#233B53]/10 bg-[#F5F1E8]/40">
+                      <img
+                        src={section.image}
+                        alt={section.imageCaption || `Ảnh minh họa mục ${idx + 1}`}
+                        className="max-h-48 w-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -779,7 +910,12 @@ export const BlogEditorModal: React.FC<BlogEditorModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={submitting || uploadingImage || uploadingVideo}
+              disabled={
+                submitting ||
+                uploadingImage ||
+                uploadingVideo ||
+                uploadingSectionIdx !== null
+              }
               className="inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#233B53] px-7 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1A2D40] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span>

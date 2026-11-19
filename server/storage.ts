@@ -351,8 +351,9 @@ export async function updatePost(
         .eq('featured', true);
     }
 
+    const { slug: _ignoredSlug, ...updateFields } = postToRow(updatedPost);
     const row = {
-      ...postToRow(updatedPost),
+      ...updateFields,
       updated_at: new Date().toISOString(),
     };
     const { data, error } = await supabase

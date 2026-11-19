@@ -51,6 +51,8 @@ export interface BlogArticleSection {
   heading: string;
   paragraphs: string[];
   bullets?: string[];
+  image?: string;
+  imageCaption?: string;
 }
 
 export interface BlogPostItem {

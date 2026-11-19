@@ -204,18 +204,34 @@ export default function App() {
 
   const handleEditPost = (post: BlogPostItem) => {
     if (!isAdmin) return;
-    setEditingPost(post);
+    const latest = posts.find((p) => p.slug === post.slug) ?? post;
+    setEditingPost(latest);
     setEditorModalOpen(true);
   };
 
   const handlePostSaved = async (savedPost: BlogPostItem) => {
+    // Immediately update local state so edited/new content displays right away
+    setPosts((prev) => {
+      const exists = prev.some((p) => p.slug === savedPost.slug);
+      if (exists) {
+        return prev.map((p) => {
+          if (p.slug === savedPost.slug) return savedPost;
+          if (savedPost.featured) return { ...p, featured: false };
+          return p;
+        });
+      }
+      return savedPost.featured
+        ? [savedPost, ...prev.map((p) => ({ ...p, featured: false }))]
+        : [savedPost, ...prev];
+    });
+
     await refreshPosts();
     if (savedPost.status === 'scheduled') {
       showToast('Đã lên lịch đăng bài viết thành công.');
     } else if (savedPost.status === 'draft') {
       showToast('Đã lưu bản nháp thành công.');
     } else {
-      showToast('Đã đăng bài lên Blog thành công.');
+      showToast('Đã lưu và cập nhật bài viết thành công.');
     }
     if (activePage !== 'blog' && activePage !== 'blog-detail') {
       navigateTo('blog');

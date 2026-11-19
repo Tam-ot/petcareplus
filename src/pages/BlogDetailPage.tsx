@@ -183,6 +183,24 @@ export const BlogDetailPage: React.FC<BlogDetailPageProps> = ({
                     ))}
                   </ul>
                 )}
+                {section.image && (
+                  <figure className="pt-2">
+                    <div className="overflow-hidden rounded-[20px] border border-[#233B53]/10 bg-[#F5F1E8] p-2.5">
+                      <img
+                        src={section.image}
+                        alt={section.imageCaption || section.heading}
+                        loading="lazy"
+                        decoding="async"
+                        className="max-h-[540px] w-full rounded-[14px] object-cover"
+                      />
+                    </div>
+                    {section.imageCaption && (
+                      <figcaption className="mt-2.5 text-center text-sm italic text-[#332C28]/70">
+                        {section.imageCaption}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
               </section>
             ))}
 
